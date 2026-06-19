@@ -1,7 +1,7 @@
 "use client";
 
 import { Source, Layer } from "react-map-gl/mapbox";
-import type { LineLayer, CircleLayer } from "react-map-gl/mapbox";
+import type { LineLayerSpecification as LineLayer, CircleLayerSpecification as CircleLayer } from "mapbox-gl";
 import type { GeoJsonFeatureCollection } from "@/lib/types";
 
 interface FlightLayerProps {

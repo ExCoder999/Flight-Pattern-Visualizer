@@ -1,8 +1,10 @@
 "use client";
 
 import { Source, Layer } from "react-map-gl/mapbox";
-import type { CircleLayer } from "react-map-gl/mapbox";
+import type { CircleLayerSpecification, ExpressionSpecification } from "mapbox-gl";
 import type { WeatherPoint, WeatherLayerType, GeoJsonFeatureCollection } from "@/lib/types";
+
+type CircleLayer = CircleLayerSpecification;
 
 interface WeatherLayerProps {
   weatherPoints: WeatherPoint[];
@@ -38,7 +40,7 @@ function weatherToGeoJson(
   };
 }
 
-function getCircleColor(layer: WeatherLayerType): CircleLayer["paint"]["circle-color"] {
+function getCircleColor(layer: WeatherLayerType): ExpressionSpecification | string {
   if (layer === "temperature") {
     return [
       "interpolate",
@@ -95,7 +97,7 @@ export default function WeatherLayer({ weatherPoints, activeLayer }: WeatherLaye
         6, 28,
         10, 40,
       ],
-      "circle-color": getCircleColor(activeLayer),
+      "circle-color": getCircleColor(activeLayer) as ExpressionSpecification,
       "circle-opacity": 0.55,
       "circle-stroke-color": "#ffffff",
       "circle-stroke-width": 0.5,
