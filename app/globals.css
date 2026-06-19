@@ -41,3 +41,40 @@ input[type="range"]::-moz-range-thumb {
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
+
+/* Override Mapbox popup chrome with our dark theme */
+.flight-popup .mapboxgl-popup-content {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0.75rem;
+}
+
+.flight-popup .mapboxgl-popup-tip {
+  border-top-color: #1e293b;
+}
+
+/* Thin custom scrollbar */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 2px;
+}
+
+/* Slide-in animation for toasts */
+@keyframes slide-in-from-right-4 {
+  from { transform: translateX(1rem); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.animate-in { animation-duration: 300ms; animation-fill-mode: both; }
+.slide-in-from-right-4 { animation-name: slide-in-from-right-4; }
+.fade-in { animation-name: fade-in; }
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
