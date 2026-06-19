@@ -11,7 +11,12 @@
 import { useCallback } from "react";
 import { useFlightStoreInternal } from "@/lib/store/flightStore";
 import type { FlightTrajectory, FlightState } from "@/lib/types";
-import { fetchHistoricalTrajectories, fetchLiveFlights } from "@/lib/api/flights";
+
+async function apiFetch<T>(url: string): Promise<T> {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json() as Promise<T>;
+}
 
 export function useFlightStore() {
   const trajectories = useFlightStoreInternal((s) => s.trajectories);
@@ -27,8 +32,8 @@ export function useFlightStore() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchHistoricalTrajectories();
-      setTrajectories(data);
+      const data = await apiFetch<{ trajectories: FlightTrajectory[] }>("/api/flights");
+      setTrajectories(data.trajectories);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load flights");
     } finally {
@@ -38,8 +43,8 @@ export function useFlightStore() {
 
   const loadLiveFlights = useCallback(async () => {
     try {
-      const data = await fetchLiveFlights();
-      setLiveFlights(data);
+      const data = await apiFetch<{ flights: FlightState[] }>("/api/flights?type=live");
+      setLiveFlights(data.flights);
     } catch {
       // silently ignore live update failures
     }

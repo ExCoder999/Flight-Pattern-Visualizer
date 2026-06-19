@@ -7,7 +7,12 @@
 import { useCallback } from "react";
 import { useWeatherStoreInternal } from "@/lib/store/weatherStore";
 import type { WeatherPoint } from "@/lib/types";
-import { fetchWeatherGrid } from "@/lib/api/weather";
+
+async function apiFetch<T>(url: string): Promise<T> {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json() as Promise<T>;
+}
 
 export function useWeatherStore() {
   const weatherPoints = useWeatherStoreInternal((s) => s.weatherPoints);
@@ -21,8 +26,8 @@ export function useWeatherStore() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWeatherGrid();
-      setWeatherPoints(data);
+      const data = await apiFetch<{ weatherPoints: WeatherPoint[] }>("/api/weather");
+      setWeatherPoints(data.weatherPoints);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load weather");
     } finally {
