@@ -155,12 +155,20 @@ export default function AppShell() {
         </div>
 
         <div className="flex items-center gap-3 flex-shrink-0">
-          {/* Live aircraft count badge */}
-          {liveFlights.length > 0 && (
-            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-emerald-900/40 border border-emerald-700/50 rounded-lg">
-              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-              <span className="text-emerald-400 text-xs font-medium">
-                {liveFlights.length} live
+          {/* Live aircraft count badge — dims when replaying history */}
+          {liveFlights.length > 0 && showLiveFlights && (
+            <div className={`hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all ${
+              currentTime >= 0.9
+                ? "bg-emerald-900/40 border border-emerald-700/50"
+                : "bg-slate-800/60 border border-slate-700"
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                currentTime >= 0.9 ? "bg-emerald-400 animate-pulse" : "bg-slate-500"
+              }`} />
+              <span className={`text-xs font-medium ${
+                currentTime >= 0.9 ? "text-emerald-400" : "text-slate-500"
+              }`}>
+                {currentTime >= 0.9 ? `${liveFlights.length} live` : "replay"}
               </span>
             </div>
           )}

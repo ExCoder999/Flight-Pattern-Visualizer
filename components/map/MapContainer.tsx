@@ -8,7 +8,7 @@ import Map, {
   NavigationControl,
   ScaleControl,
 } from "react-map-gl/maplibre";
-import type { Map as MaplibreMap } from "maplibre-gl";
+import type { Map as MaplibreMap, ProjectionSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import FlightLayer from "./FlightLayer";
@@ -127,19 +127,25 @@ export default function MapContainer({
     ? flightHeadsToGeoJson(trajectories, currentTime, timeRange)
     : { type: "FeatureCollection", features: [] };
 
-  // Register airplane icon — lazily on styleimagemissing so it survives style swaps
   const handleMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap() as MaplibreMap | undefined;
     if (!map) return;
 
-    const provide = (e: { id: string }) => {
+    // Enable globe projection
+    const GLOBE: ProjectionSpecification = { type: "globe" };
+    map.setProjection(GLOBE);
+
+    // Re-apply globe after every style swap (setStyle resets projection to mercator)
+    map.on("styledata", () => {
+      if (map.getProjection().type !== "globe") map.setProjection(GLOBE);
+    });
+
+    // Provide airplane icon lazily — survives style reloads via styleimagemissing
+    map.on("styleimagemissing", (e: { id: string }) => {
       if (e.id === "airplane-live" && !map.hasImage("airplane-live")) {
         map.addImage("airplane-live", createAirplaneImageData(32));
       }
-    };
-
-    map.on("styleimagemissing", provide);
-    // Pre-load immediately so first render doesn't flash
+    });
     if (!map.hasImage("airplane-live")) {
       map.addImage("airplane-live", createAirplaneImageData(32));
     }
@@ -207,7 +213,7 @@ export default function MapContainer({
     <div className="relative w-full h-full">
       <Map
         ref={mapRef}
-        initialViewState={{ longitude: 10, latitude: 25, zoom: 2, pitch: 0 }}
+        initialViewState={{ longitude: 10, latitude: 25, zoom: 1.5, pitch: 0 }}
         style={{ width: "100%", height: "100%" }}
         mapStyle={MAP_STYLES[mapStyle]}
         onClick={handleMapClick}
@@ -229,7 +235,8 @@ export default function MapContainer({
           headsGeoJson={headsGeoJson}
           selectedFlightId={selectedFlightId}
         />
-        {showLiveFlights && <LiveFlightLayer flights={liveFlights} />}
+        {/* Live aircraft only visible at the "now" end of the timeline (not during historical replay) */}
+        {showLiveFlights && currentTime >= 0.9 && <LiveFlightLayer flights={liveFlights} />}
 
         {popupInfo && (
           <Popup
