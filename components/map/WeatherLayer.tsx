@@ -1,10 +1,7 @@
 "use client";
 
-import { Source, Layer } from "react-map-gl/mapbox";
-import type { CircleLayerSpecification, ExpressionSpecification } from "mapbox-gl";
+import { Source, Layer } from "react-map-gl/maplibre";
 import type { WeatherPoint, WeatherLayerType, GeoJsonFeatureCollection } from "@/lib/types";
-
-type CircleLayer = CircleLayerSpecification;
 
 interface WeatherLayerProps {
   weatherPoints: WeatherPoint[];
@@ -40,41 +37,18 @@ function weatherToGeoJson(
   };
 }
 
-function getCircleColor(layer: WeatherLayerType): ExpressionSpecification | string {
+function getCircleColor(layer: WeatherLayerType): unknown {
   if (layer === "temperature") {
-    return [
-      "interpolate",
-      ["linear"],
-      ["get", "temp"],
-      -20, "#0000ff",
-      0, "#00aaff",
-      10, "#00ffcc",
-      20, "#ffee00",
-      30, "#ff7700",
-      40, "#ff0000",
-    ];
+    return ["interpolate", ["linear"], ["get", "temp"],
+      -20, "#0000ff", 0, "#00aaff", 10, "#00ffcc", 20, "#ffee00", 30, "#ff7700", 40, "#ff0000"];
   }
   if (layer === "wind") {
-    return [
-      "interpolate",
-      ["linear"],
-      ["get", "windSpeed"],
-      0, "#a8edea",
-      5, "#54d2d2",
-      10, "#f7b733",
-      20, "#fc4a1a",
-    ];
+    return ["interpolate", ["linear"], ["get", "windSpeed"],
+      0, "#a8edea", 5, "#54d2d2", 10, "#f7b733", 20, "#fc4a1a"];
   }
   if (layer === "precipitation") {
-    return [
-      "interpolate",
-      ["linear"],
-      ["get", "precipitation"],
-      0, "#e0f0ff",
-      1, "#7ec8e3",
-      5, "#0070a1",
-      15, "#003366",
-    ];
+    return ["interpolate", ["linear"], ["get", "precipitation"],
+      0, "#e0f0ff", 1, "#7ec8e3", 5, "#0070a1", 15, "#003366"];
   }
   return "#cccccc";
 }
@@ -84,33 +58,27 @@ export default function WeatherLayer({ weatherPoints, activeLayer }: WeatherLaye
 
   const geoJson = weatherToGeoJson(weatherPoints, activeLayer);
 
-  const circleLayer: CircleLayer = {
-    id: "weather-circles",
-    type: "circle",
-    source: "weather-source",
-    paint: {
-      "circle-radius": [
-        "interpolate",
-        ["linear"],
-        ["zoom"],
-        3, 18,
-        6, 28,
-        10, 40,
-      ],
-      "circle-color": getCircleColor(activeLayer) as ExpressionSpecification,
-      "circle-opacity": 0.55,
-      "circle-stroke-color": "#ffffff",
-      "circle-stroke-width": 0.5,
-    },
-  };
-
   return (
     <Source
       id="weather-source"
       type="geojson"
       data={geoJson as unknown as GeoJSON.FeatureCollection}
     >
-      <Layer {...circleLayer} />
+      <Layer
+        id="weather-circles"
+        type="circle"
+        source="weather-source"
+        paint={{
+          "circle-radius": [
+            "interpolate", ["linear"], ["zoom"],
+            3, 18, 6, 28, 10, 40,
+          ] as unknown as number,
+          "circle-color": getCircleColor(activeLayer) as string,
+          "circle-opacity": 0.55,
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 0.5,
+        }}
+      />
     </Source>
   );
 }

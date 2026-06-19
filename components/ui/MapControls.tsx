@@ -9,11 +9,11 @@ interface MapControlsProps {
   onToggle3D: () => void;
 }
 
-const STYLES: { id: MapStyle; label: string; emoji: string }[] = [
-  { id: "dark",      label: "Dark",      emoji: "🌑" },
-  { id: "satellite", label: "Satellite", emoji: "🛰" },
-  { id: "light",     label: "Light",     emoji: "☀️" },
-  { id: "streets",   label: "Streets",   emoji: "🗺" },
+const STYLES: { id: MapStyle; label: string; emoji: string; free?: true }[] = [
+  { id: "dark",      label: "Dark",    emoji: "🌑", free: true },
+  { id: "streets",   label: "Voyager", emoji: "🗺",  free: true },
+  { id: "light",     label: "Light",   emoji: "☀️", free: true },
+  { id: "satellite", label: "Terrain", emoji: "🌍", free: true },
 ];
 
 export default function MapControls({
