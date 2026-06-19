@@ -14,11 +14,9 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import FlightLayer from "./FlightLayer";
 import WeatherLayer from "./WeatherLayer";
 import AirportLayer from "./AirportLayer";
-import LiveFlightLayer from "./LiveFlightLayer";
 import WorldWeatherLayer from "./WorldWeatherLayer";
 import type {
   FlightTrajectory,
-  FlightState,
   WeatherPoint,
   WeatherLayerType,
   MapStyle,
@@ -34,44 +32,6 @@ const MAP_STYLES: Record<MapStyle, string> = {
   satellite: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
 };
 
-/** Draw airplane silhouette onto a canvas and return ImageData.
- *  Nose points north (up) so icon-rotate 0° = facing north. */
-function createAirplaneImageData(size = 32): ImageData {
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = size;
-  const ctx = canvas.getContext("2d")!;
-  const s = size / 32;
-
-  ctx.clearRect(0, 0, size, size);
-  ctx.save();
-  ctx.translate(size / 2, size / 2);
-
-  ctx.shadowColor = "rgba(59, 130, 246, 0.55)";
-  ctx.shadowBlur = 3 * s;
-  ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
-  ctx.strokeStyle = "rgba(15, 23, 42, 0.7)";
-  ctx.lineWidth = 0.9 * s;
-
-  ctx.beginPath();
-  ctx.moveTo(0,          -11 * s); // nose
-  ctx.lineTo( 2   * s,   -5 * s);
-  ctx.lineTo( 11  * s,    2 * s); // right wingtip
-  ctx.lineTo( 9.5 * s,    4 * s);
-  ctx.lineTo( 2.5 * s,  1.5 * s);
-  ctx.lineTo( 3   * s,   10 * s); // right tail fin
-  ctx.lineTo( 0,        8.5 * s); // tail notch
-  ctx.lineTo(-3   * s,   10 * s); // left tail fin
-  ctx.lineTo(-2.5 * s,  1.5 * s);
-  ctx.lineTo(-9.5 * s,    4 * s);
-  ctx.lineTo(-11  * s,    2 * s); // left wingtip
-  ctx.lineTo(-2   * s,   -5 * s);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.restore();
-  return ctx.getImageData(0, 0, size, size);
-}
 
 interface PopupInfo {
   longitude: number;
@@ -87,33 +47,31 @@ interface PopupInfo {
 
 interface MapContainerProps {
   trajectories: FlightTrajectory[];
-  liveFlights: FlightState[];
   weatherPoints: WeatherPoint[];
   airports: Airport[];
   currentTime: number;
   timeRange: [number, number];
   activeWeatherLayer: WeatherLayerType;
   showFlightPaths: boolean;
-  showLiveFlights: boolean;
   selectedFlightId: string | null;
   mapStyle: MapStyle;
   is3D: boolean;
+  isGlobe: boolean;
   onFlightSelect: (id: string | null) => void;
 }
 
 export default function MapContainer({
   trajectories,
-  liveFlights,
   weatherPoints,
   airports,
   currentTime,
   timeRange,
   activeWeatherLayer,
   showFlightPaths,
-  showLiveFlights,
   selectedFlightId,
   mapStyle,
   is3D,
+  isGlobe,
   onFlightSelect,
 }: MapContainerProps) {
   const mapRef = useRef<MapRef>(null);
@@ -130,26 +88,28 @@ export default function MapContainer({
   const handleMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap() as MaplibreMap | undefined;
     if (!map) return;
+    map.setProjection({ type: isGlobe ? "globe" : "mercator" } as ProjectionSpecification);
+  }, [isGlobe]);
 
-    // Enable globe projection
-    const GLOBE: ProjectionSpecification = { type: "globe" };
-    map.setProjection(GLOBE);
-
-    // Re-apply globe after every style swap (setStyle resets projection to mercator)
-    map.on("styledata", () => {
-      if (map.getProjection().type !== "globe") map.setProjection(GLOBE);
-    });
-
-    // Provide airplane icon lazily — survives style reloads via styleimagemissing
-    map.on("styleimagemissing", (e: { id: string }) => {
-      if (e.id === "airplane-live" && !map.hasImage("airplane-live")) {
-        map.addImage("airplane-live", createAirplaneImageData(32));
+  // Re-apply projection whenever the map style or globe toggle changes.
+  // We wait for 'idle' so setProjection() is safe to call.
+  useEffect(() => {
+    const map = mapRef.current?.getMap() as MaplibreMap | undefined;
+    if (!map) return;
+    const apply = () => {
+      try {
+        map.setProjection({ type: isGlobe ? "globe" : "mercator" } as ProjectionSpecification);
+      } catch {
+        // style not yet ready
       }
-    });
-    if (!map.hasImage("airplane-live")) {
-      map.addImage("airplane-live", createAirplaneImageData(32));
+    };
+    if (map.isStyleLoaded()) {
+      apply();
+    } else {
+      map.once("idle", apply);
+      return () => { map.off("idle", apply); };
     }
-  }, []);
+  }, [mapStyle, isGlobe]);
 
   useEffect(() => {
     const map = mapRef.current?.getMap() as MaplibreMap | undefined;
@@ -175,7 +135,7 @@ export default function MapContainer({
       const map = mapRef.current?.getMap() as MaplibreMap | undefined;
       if (!map) return;
       const features = map.queryRenderedFeatures(event.point, {
-        layers: ["flight-heads", "flight-paths", "live-flights"],
+        layers: ["flight-heads", "flight-paths"],
       });
       if (features.length > 0) {
         const f = features[0];
@@ -219,7 +179,7 @@ export default function MapContainer({
         onClick={handleMapClick}
         onLoad={handleMapLoad}
         cursor="crosshair"
-        interactiveLayerIds={["flight-heads", "flight-paths", "live-flights"]}
+        interactiveLayerIds={["flight-heads", "flight-paths"]}
         attributionControl={{ customAttribution: "© CARTO © OpenStreetMap" }}
       >
         <NavigationControl position="bottom-right" visualizePitch />
@@ -235,9 +195,6 @@ export default function MapContainer({
           headsGeoJson={headsGeoJson}
           selectedFlightId={selectedFlightId}
         />
-        {/* Live aircraft only visible at the "now" end of the timeline (not during historical replay) */}
-        {showLiveFlights && currentTime >= 0.9 && <LiveFlightLayer flights={liveFlights} />}
-
         {popupInfo && (
           <Popup
             longitude={popupInfo.longitude}

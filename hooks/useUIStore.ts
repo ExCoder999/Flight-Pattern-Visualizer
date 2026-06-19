@@ -18,6 +18,7 @@ export function useUIStore() {
   const playbackSpeed = useUIStoreInternal((s) => s.playbackSpeed);
   const mapStyle = useUIStoreInternal((s) => s.mapStyle);
   const is3D = useUIStoreInternal((s) => s.is3D);
+  const isGlobe = useUIStoreInternal((s) => s.isGlobe);
   const sidebarOpen = useUIStoreInternal((s) => s.sidebarOpen);
   const toasts = useUIStoreInternal((s) => s.toasts);
   const setSelectedFlight = useUIStoreInternal((s) => s.setSelectedFlight);
@@ -30,6 +31,7 @@ export function useUIStore() {
   const setPlaybackSpeed = useUIStoreInternal((s) => s.setPlaybackSpeed);
   const setMapStyle = useUIStoreInternal((s) => s.setMapStyle);
   const setIs3D = useUIStoreInternal((s) => s.setIs3D);
+  const setIsGlobe = useUIStoreInternal((s) => s.setIsGlobe);
   const setSidebarOpen = useUIStoreInternal((s) => s.setSidebarOpen);
   const addToast = useUIStoreInternal((s) => s.addToast);
   const removeToast = useUIStoreInternal((s) => s.removeToast);
@@ -45,6 +47,7 @@ export function useUIStore() {
     playbackSpeed,
     mapStyle,
     is3D,
+    isGlobe,
     sidebarOpen,
     toasts,
     setSelectedFlight,
@@ -57,6 +60,7 @@ export function useUIStore() {
     setPlaybackSpeed,
     setMapStyle,
     setIs3D,
+    setIsGlobe,
     setSidebarOpen,
     addToast,
     removeToast,
@@ -71,6 +75,7 @@ export function useUIStore() {
     playbackSpeed: PlaybackSpeed;
     mapStyle: MapStyle;
     is3D: boolean;
+    isGlobe: boolean;
     sidebarOpen: boolean;
     toasts: ToastMessage[];
     setSelectedFlight: (id: string | null) => void;
@@ -83,6 +88,7 @@ export function useUIStore() {
     setPlaybackSpeed: (speed: PlaybackSpeed) => void;
     setMapStyle: (style: MapStyle) => void;
     setIs3D: (is3D: boolean) => void;
+    setIsGlobe: (v: boolean) => void;
     setSidebarOpen: (open: boolean) => void;
     addToast: (message: string, type: ToastMessage["type"]) => void;
     removeToast: (id: string) => void;

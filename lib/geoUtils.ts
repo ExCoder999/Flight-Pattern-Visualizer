@@ -7,6 +7,26 @@ import type {
   Airport,
 } from "./types";
 
+// Unwrap longitudes so consecutive points never jump more than 180°.
+// This fixes antimeridian-crossing paths (e.g. LA→Tokyo) which otherwise
+// render as a line going the wrong way across the entire map.
+function unwrapLongitudes(
+  coords: Array<[number, number, number?]>
+): Array<[number, number, number?]> {
+  if (coords.length === 0) return coords;
+  const out: Array<[number, number, number?]> = [coords[0]];
+  for (let i = 1; i < coords.length; i++) {
+    let lon = coords[i][0];
+    const prev = out[i - 1][0];
+    while (lon - prev > 180) lon -= 360;
+    while (lon - prev < -180) lon += 360;
+    const c: [number, number, number?] = [lon, coords[i][1]];
+    if (coords[i][2] !== undefined) c[2] = coords[i][2];
+    out.push(c);
+  }
+  return out;
+}
+
 export function trajectoriesToGeoJson(
   trajectories: FlightTrajectory[],
   currentTime: number,
@@ -23,17 +43,17 @@ export function trajectoriesToGeoJson(
 
       if (filtered.length < 2) return null;
 
+      const rawCoords: Array<[number, number, number?]> = filtered.map((p) => {
+        const c: [number, number, number?] = [p.longitude, p.latitude];
+        if (p.baroAltitude !== null) c[2] = p.baroAltitude;
+        return c;
+      });
+
       return {
         type: "Feature",
         geometry: {
           type: "LineString",
-          coordinates: filtered.map((p): [number, number, number?] => {
-            const coord: [number, number, number?] = [p.longitude, p.latitude];
-            if (p.baroAltitude !== null) {
-              coord[2] = p.baroAltitude;
-            }
-            return coord;
-          }),
+          coordinates: unwrapLongitudes(rawCoords),
         },
         properties: {
           icao24: traj.icao24,

@@ -5,8 +5,10 @@ import type { MapStyle } from "@/lib/types";
 interface MapControlsProps {
   mapStyle: MapStyle;
   is3D: boolean;
+  isGlobe: boolean;
   onMapStyleChange: (style: MapStyle) => void;
   onToggle3D: () => void;
+  onToggleGlobe: () => void;
 }
 
 const STYLES: { id: MapStyle; label: string; emoji: string; free?: true }[] = [
@@ -19,8 +21,10 @@ const STYLES: { id: MapStyle; label: string; emoji: string; free?: true }[] = [
 export default function MapControls({
   mapStyle,
   is3D,
+  isGlobe,
   onMapStyleChange,
   onToggle3D,
+  onToggleGlobe,
 }: MapControlsProps) {
   return (
     <div className="flex flex-col gap-2">
@@ -45,13 +49,26 @@ export default function MapControls({
       </div>
 
       <button
+        onClick={onToggleGlobe}
+        className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border transition-all shadow-lg ${
+          isGlobe
+            ? "bg-blue-600 border-blue-500 text-white"
+            : "bg-slate-900/90 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 backdrop-blur"
+        }`}
+        title="Toggle globe / flat (G)"
+      >
+        <span>{isGlobe ? "🌍" : "🗺"}</span>
+        <span>{isGlobe ? "Globe" : "Flat"}</span>
+      </button>
+
+      <button
         onClick={onToggle3D}
         className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border transition-all shadow-lg ${
           is3D
             ? "bg-indigo-600 border-indigo-500 text-white"
             : "bg-slate-900/90 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 backdrop-blur"
         }`}
-        title="Toggle 3D view (3)"
+        title="Toggle 3D view (T)"
       >
         <span>🏔</span>
         <span>{is3D ? "3D On" : "3D View"}</span>

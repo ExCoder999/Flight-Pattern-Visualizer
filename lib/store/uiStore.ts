@@ -12,6 +12,7 @@ interface UIStoreState {
   playbackSpeed: PlaybackSpeed;
   mapStyle: MapStyle;
   is3D: boolean;
+  isGlobe: boolean;
   sidebarOpen: boolean;
   toasts: ToastMessage[];
   setSelectedFlight: (id: string | null) => void;
@@ -24,6 +25,7 @@ interface UIStoreState {
   setPlaybackSpeed: (speed: PlaybackSpeed) => void;
   setMapStyle: (style: MapStyle) => void;
   setIs3D: (is3D: boolean) => void;
+  setIsGlobe: (v: boolean) => void;
   setSidebarOpen: (open: boolean) => void;
   addToast: (message: string, type: ToastMessage["type"]) => void;
   removeToast: (id: string) => void;
@@ -40,6 +42,7 @@ export const useUIStoreInternal = create<UIStoreState>((set) => ({
   playbackSpeed: 1,
   mapStyle: "dark",
   is3D: false,
+  isGlobe: true,
   sidebarOpen: true,
   toasts: [],
   setSelectedFlight: (selectedFlightId) => set({ selectedFlightId }),
@@ -52,6 +55,7 @@ export const useUIStoreInternal = create<UIStoreState>((set) => ({
   setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
   setMapStyle: (mapStyle) => set({ mapStyle }),
   setIs3D: (is3D) => set({ is3D }),
+  setIsGlobe: (isGlobe) => set({ isGlobe }),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   addToast: (message, type) =>
     set((s) => ({

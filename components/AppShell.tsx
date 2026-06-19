@@ -38,6 +38,7 @@ export default function AppShell() {
     playbackSpeed,
     mapStyle,
     is3D,
+    isGlobe,
     sidebarOpen,
     toasts,
     setSelectedFlight,
@@ -50,6 +51,7 @@ export default function AppShell() {
     setPlaybackSpeed,
     setMapStyle,
     setIs3D,
+    setIsGlobe,
     setSidebarOpen,
     addToast,
     removeToast,
@@ -125,14 +127,15 @@ export default function AppShell() {
         case "3": setActiveWeatherLayer("wind");          break;
         case "4": setActiveWeatherLayer("precipitation"); break;
         case "l": case "L": setShowLiveFlights(!showLiveFlights); break;
-        case "t": case "T": setIs3D(!is3D);               break;
-        case "b": case "B": setSidebarOpen(!sidebarOpen); break;
+        case "g": case "G": setIsGlobe(!isGlobe);          break;
+        case "t": case "T": setIs3D(!is3D);                break;
+        case "b": case "B": setSidebarOpen(!sidebarOpen);  break;
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [is3D, sidebarOpen, showLiveFlights, setCurrentTime, setIsPlaying, setSelectedFlight,
-      setActiveWeatherLayer, setIs3D, setSidebarOpen, setShowLiveFlights]);
+  }, [is3D, isGlobe, sidebarOpen, showLiveFlights, setCurrentTime, setIsPlaying, setSelectedFlight,
+      setActiveWeatherLayer, setIs3D, setIsGlobe, setSidebarOpen, setShowLiveFlights]);
 
   return (
     <div className="flex flex-col h-screen bg-slate-950 text-white overflow-hidden">
@@ -188,8 +191,8 @@ export default function AppShell() {
             </svg>
           </button>
           <div className="text-slate-600 text-xs hidden lg:block leading-relaxed">
-            <div>Space · Play/Pause · L · Live</div>
-            <div>R · Reset · Esc · Deselect</div>
+            <div>Space · Play/Pause · G · Globe</div>
+            <div>R · Reset · T · 3D · Esc · Deselect</div>
           </div>
         </div>
       </header>
@@ -253,17 +256,16 @@ export default function AppShell() {
         <main className="flex-1 relative overflow-hidden">
           <MapView
             trajectories={trajectories}
-            liveFlights={liveFlights}
             weatherPoints={weatherPoints}
             airports={MOCK_AIRPORTS}
             currentTime={currentTime}
             timeRange={timeRange}
             activeWeatherLayer={activeWeatherLayer}
             showFlightPaths={showFlightPaths}
-            showLiveFlights={showLiveFlights}
             selectedFlightId={selectedFlightId}
             mapStyle={mapStyle}
             is3D={is3D}
+            isGlobe={isGlobe}
             onFlightSelect={setSelectedFlight}
           />
 
@@ -272,8 +274,10 @@ export default function AppShell() {
             <MapControls
               mapStyle={mapStyle}
               is3D={is3D}
+              isGlobe={isGlobe}
               onMapStyleChange={setMapStyle}
               onToggle3D={() => setIs3D(!is3D)}
+              onToggleGlobe={() => setIsGlobe(!isGlobe)}
             />
           </div>
 
