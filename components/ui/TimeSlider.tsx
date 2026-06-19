@@ -38,10 +38,16 @@ export default function TimeSlider({
   const lastTimestampRef = useRef<number | null>(null);
   const currentTimeRef = useRef(currentTime);
   const speedRef = useRef(playbackSpeed);
-  currentTimeRef.current = currentTime;
-  speedRef.current = playbackSpeed;
+  // Sync latest prop values into refs after each render (avoids stale closures
+  // without triggering re-renders, and satisfies the react-hooks/refs rule).
+  useEffect(() => { currentTimeRef.current = currentTime; });
+  useEffect(() => { speedRef.current = playbackSpeed; });
 
-  const tick = useCallback(
+  // tickRef breaks the self-reference cycle: tick calls tickRef.current instead
+  // of itself, which avoids the "variable accessed before declaration" lint error.
+  const tickRef = useRef<FrameRequestCallback | null>(null);
+
+  const tick: FrameRequestCallback = useCallback(
     (ts: number) => {
       if (lastTimestampRef.current === null) lastTimestampRef.current = ts;
       const elapsed = ts - lastTimestampRef.current;
@@ -50,13 +56,14 @@ export default function TimeSlider({
       const next = Math.min(1, currentTimeRef.current + elapsed * baseRate * speedRef.current);
       onTimeChange(next);
       if (next < 1) {
-        animFrameRef.current = requestAnimationFrame(tick);
+        animFrameRef.current = requestAnimationFrame((ts2) => tickRef.current?.(ts2));
       } else {
         onPlayToggle();
       }
     },
     [onTimeChange, onPlayToggle]
   );
+  useEffect(() => { tickRef.current = tick; }, [tick]);
 
   useEffect(() => {
     if (isPlaying) {

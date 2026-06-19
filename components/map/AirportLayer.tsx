@@ -1,7 +1,7 @@
 "use client";
 
 import { Source, Layer } from "react-map-gl/maplibre";
-import type { Airport, GeoJsonFeatureCollection } from "@/lib/types";
+import type { Airport } from "@/lib/types";
 import { airportsToGeoJson } from "@/lib/geoUtils";
 
 interface AirportLayerProps {

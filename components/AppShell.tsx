@@ -100,11 +100,11 @@ export default function AppShell() {
     setIsPlaying(!isPlaying);
   }, [isPlaying, currentTime, setIsPlaying, setCurrentTime]);
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts — keep stable refs so the handler never goes stale
   const isPlayingRef = useRef(isPlaying);
   const currentTimeRef = useRef(currentTime);
-  isPlayingRef.current = isPlaying;
-  currentTimeRef.current = currentTime;
+  useEffect(() => { isPlayingRef.current = isPlaying; });
+  useEffect(() => { currentTimeRef.current = currentTime; });
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
