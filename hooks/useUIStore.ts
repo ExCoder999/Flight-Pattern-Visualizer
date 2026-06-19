@@ -13,6 +13,7 @@ export function useUIStore() {
   const currentTime = useUIStoreInternal((s) => s.currentTime);
   const activeWeatherLayer = useUIStoreInternal((s) => s.activeWeatherLayer);
   const showFlightPaths = useUIStoreInternal((s) => s.showFlightPaths);
+  const showLiveFlights = useUIStoreInternal((s) => s.showLiveFlights);
   const isPlaying = useUIStoreInternal((s) => s.isPlaying);
   const playbackSpeed = useUIStoreInternal((s) => s.playbackSpeed);
   const mapStyle = useUIStoreInternal((s) => s.mapStyle);
@@ -24,6 +25,7 @@ export function useUIStore() {
   const setCurrentTime = useUIStoreInternal((s) => s.setCurrentTime);
   const setActiveWeatherLayer = useUIStoreInternal((s) => s.setActiveWeatherLayer);
   const setShowFlightPaths = useUIStoreInternal((s) => s.setShowFlightPaths);
+  const setShowLiveFlights = useUIStoreInternal((s) => s.setShowLiveFlights);
   const setIsPlaying = useUIStoreInternal((s) => s.setIsPlaying);
   const setPlaybackSpeed = useUIStoreInternal((s) => s.setPlaybackSpeed);
   const setMapStyle = useUIStoreInternal((s) => s.setMapStyle);
@@ -38,6 +40,7 @@ export function useUIStore() {
     currentTime,
     activeWeatherLayer,
     showFlightPaths,
+    showLiveFlights,
     isPlaying,
     playbackSpeed,
     mapStyle,
@@ -49,6 +52,7 @@ export function useUIStore() {
     setCurrentTime,
     setActiveWeatherLayer,
     setShowFlightPaths,
+    setShowLiveFlights,
     setIsPlaying,
     setPlaybackSpeed,
     setMapStyle,
@@ -62,6 +66,7 @@ export function useUIStore() {
     currentTime: number;
     activeWeatherLayer: WeatherLayerType;
     showFlightPaths: boolean;
+    showLiveFlights: boolean;
     isPlaying: boolean;
     playbackSpeed: PlaybackSpeed;
     mapStyle: MapStyle;
@@ -73,6 +78,7 @@ export function useUIStore() {
     setCurrentTime: (time: number) => void;
     setActiveWeatherLayer: (layer: WeatherLayerType) => void;
     setShowFlightPaths: (show: boolean) => void;
+    setShowLiveFlights: (show: boolean) => void;
     setIsPlaying: (playing: boolean) => void;
     setPlaybackSpeed: (speed: PlaybackSpeed) => void;
     setMapStyle: (style: MapStyle) => void;

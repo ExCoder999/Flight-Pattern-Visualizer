@@ -16,11 +16,12 @@ import { useUIStore } from "@/hooks/useUIStore";
 import { computeFlightStats } from "@/lib/geoUtils";
 import { MOCK_AIRPORTS } from "@/lib/mockData";
 
-const LIVE_REFRESH_MS = 30_000;
+const LIVE_REFRESH_MS = 60_000;
 
 export default function AppShell() {
   const {
     trajectories,
+    liveFlights,
     isLoading: flightsLoading,
     loadTrajectories,
     loadLiveFlights,
@@ -32,6 +33,7 @@ export default function AppShell() {
     timeRange,
     activeWeatherLayer,
     showFlightPaths,
+    showLiveFlights,
     isPlaying,
     playbackSpeed,
     mapStyle,
@@ -43,6 +45,7 @@ export default function AppShell() {
     setTimeRange,
     setActiveWeatherLayer,
     setShowFlightPaths,
+    setShowLiveFlights,
     setIsPlaying,
     setPlaybackSpeed,
     setMapStyle,
@@ -54,12 +57,17 @@ export default function AppShell() {
 
   // Initial load
   useEffect(() => {
-    loadTrajectories().then(() => addToast("Flight routes loaded", "success"));
-    loadWeather().then(() => addToast("Weather data loaded", "info"));
+    loadTrajectories().then(() =>
+      addToast(`${MOCK_AIRPORTS.length} airports · ${14} global routes loaded`, "success")
+    );
+    loadWeather().then(() => addToast("Global weather grid loaded", "info"));
+    loadLiveFlights().then(() =>
+      addToast("Live aircraft positions updated", "info")
+    );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-refresh live flights
+  // Auto-refresh live flights every 60s
   useEffect(() => {
     const id = setInterval(() => {
       loadLiveFlights();
@@ -112,29 +120,19 @@ export default function AppShell() {
         case "Escape":
           setSelectedFlight(null);
           break;
-        case "1":
-          setActiveWeatherLayer("none");
-          break;
-        case "2":
-          setActiveWeatherLayer("temperature");
-          break;
-        case "3":
-          setActiveWeatherLayer("wind");
-          break;
-        case "4":
-          setActiveWeatherLayer("precipitation");
-          break;
-        case "t": case "T":
-          setIs3D(!is3D);
-          break;
-        case "b": case "B":
-          setSidebarOpen(!sidebarOpen);
-          break;
+        case "1": setActiveWeatherLayer("none");          break;
+        case "2": setActiveWeatherLayer("temperature");   break;
+        case "3": setActiveWeatherLayer("wind");          break;
+        case "4": setActiveWeatherLayer("precipitation"); break;
+        case "l": case "L": setShowLiveFlights(!showLiveFlights); break;
+        case "t": case "T": setIs3D(!is3D);               break;
+        case "b": case "B": setSidebarOpen(!sidebarOpen); break;
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [is3D, sidebarOpen, setCurrentTime, setIsPlaying, setSelectedFlight, setActiveWeatherLayer, setIs3D, setSidebarOpen]);
+  }, [is3D, sidebarOpen, showLiveFlights, setCurrentTime, setIsPlaying, setSelectedFlight,
+      setActiveWeatherLayer, setIs3D, setSidebarOpen, setShowLiveFlights]);
 
   return (
     <div className="flex flex-col h-screen bg-slate-950 text-white overflow-hidden">
@@ -146,7 +144,9 @@ export default function AppShell() {
           </div>
           <div>
             <h1 className="font-bold text-sm leading-tight">FPV Flight Tracker</h1>
-            <p className="text-slate-500 text-xs leading-tight hidden sm:block">Historical paths + live weather</p>
+            <p className="text-slate-500 text-xs leading-tight hidden sm:block">
+              Global routes · Live aircraft · World weather
+            </p>
           </div>
         </div>
 
@@ -155,6 +155,15 @@ export default function AppShell() {
         </div>
 
         <div className="flex items-center gap-3 flex-shrink-0">
+          {/* Live aircraft count badge */}
+          {liveFlights.length > 0 && (
+            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-emerald-900/40 border border-emerald-700/50 rounded-lg">
+              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+              <span className="text-emerald-400 text-xs font-medium">
+                {liveFlights.length} live
+              </span>
+            </div>
+          )}
           {flightsLoading && (
             <div className="flex items-center gap-1.5 text-xs text-blue-400">
               <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
@@ -171,7 +180,7 @@ export default function AppShell() {
             </svg>
           </button>
           <div className="text-slate-600 text-xs hidden lg:block leading-relaxed">
-            <div>Space · Play/Pause</div>
+            <div>Space · Play/Pause · L · Live</div>
             <div>R · Reset · Esc · Deselect</div>
           </div>
         </div>
@@ -190,8 +199,10 @@ export default function AppShell() {
               <div className="px-3 pt-3 pb-2 flex-shrink-0 border-b border-slate-800">
                 <LayerToggle
                   showFlightPaths={showFlightPaths}
+                  showLiveFlights={showLiveFlights}
                   activeWeatherLayer={activeWeatherLayer}
                   onToggleFlightPaths={() => setShowFlightPaths(!showFlightPaths)}
+                  onToggleLiveFlights={() => setShowLiveFlights(!showLiveFlights)}
                   onSetWeatherLayer={setActiveWeatherLayer}
                 />
               </div>
@@ -234,12 +245,14 @@ export default function AppShell() {
         <main className="flex-1 relative overflow-hidden">
           <MapView
             trajectories={trajectories}
+            liveFlights={liveFlights}
             weatherPoints={weatherPoints}
             airports={MOCK_AIRPORTS}
             currentTime={currentTime}
             timeRange={timeRange}
             activeWeatherLayer={activeWeatherLayer}
             showFlightPaths={showFlightPaths}
+            showLiveFlights={showLiveFlights}
             selectedFlightId={selectedFlightId}
             mapStyle={mapStyle}
             is3D={is3D}

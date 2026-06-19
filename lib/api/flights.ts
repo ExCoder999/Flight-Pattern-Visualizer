@@ -11,44 +11,46 @@ function buildAuthHeader(): HeadersInit {
   return { Authorization: `Basic ${encoded}` };
 }
 
-export async function fetchLiveFlights(
-  bounds: { lamin: number; lomin: number; lamax: number; lomax: number } = {
-    lamin: 24.396308,
-    lomin: -125.0,
-    lamax: 49.384358,
-    lomax: -66.93457,
-  }
-): Promise<FlightState[]> {
-  const apiKey = process.env.OPENSKY_USERNAME;
-  if (!apiKey) {
-    return MOCK_LIVE_FLIGHTS;
-  }
-
+/** Fetch all airborne aircraft worldwide from OpenSky (no credentials required). */
+export async function fetchLiveFlights(): Promise<FlightState[]> {
   try {
-    const url = `${OPENSKY_BASE}/states/all?lamin=${bounds.lamin}&lomin=${bounds.lomin}&lamax=${bounds.lamax}&lomax=${bounds.lomax}`;
-    const res = await fetch(url, {
+    const res = await fetch(`${OPENSKY_BASE}/states/all`, {
       headers: buildAuthHeader(),
       next: { revalidate: 30 },
     });
 
     if (!res.ok) return MOCK_LIVE_FLIGHTS;
 
-    const data = await res.json() as { states?: unknown[][] };
+    const data = (await res.json()) as { states?: unknown[][] };
     if (!data.states) return MOCK_LIVE_FLIGHTS;
 
-    return data.states.map((s): FlightState => ({
-      icao24: String(s[0] ?? ""),
-      callsign: String(s[1] ?? "").trim(),
-      originCountry: String(s[2] ?? ""),
-      longitude: typeof s[5] === "number" ? s[5] : null,
-      latitude: typeof s[6] === "number" ? s[6] : null,
-      baroAltitude: typeof s[7] === "number" ? s[7] : null,
-      velocity: typeof s[9] === "number" ? s[9] : null,
-      trueTrack: typeof s[10] === "number" ? s[10] : null,
-      verticalRate: typeof s[11] === "number" ? s[11] : null,
-      onGround: Boolean(s[8]),
-      timestamp: typeof s[3] === "number" ? s[3] : Math.floor(Date.now() / 1000),
-    }));
+    const airborne = data.states
+      .filter(
+        (s): s is unknown[] =>
+          typeof s[5] === "number" &&
+          typeof s[6] === "number" &&
+          s[8] === false // not on ground
+      )
+      .slice(0, 600);
+
+    if (airborne.length === 0) return MOCK_LIVE_FLIGHTS;
+
+    return airborne.map(
+      (s): FlightState => ({
+        icao24: String(s[0] ?? ""),
+        callsign: String(s[1] ?? "").trim(),
+        originCountry: String(s[2] ?? ""),
+        longitude: typeof s[5] === "number" ? s[5] : null,
+        latitude: typeof s[6] === "number" ? s[6] : null,
+        baroAltitude: typeof s[7] === "number" ? s[7] : null,
+        velocity: typeof s[9] === "number" ? s[9] : null,
+        trueTrack: typeof s[10] === "number" ? s[10] : null,
+        verticalRate: typeof s[11] === "number" ? s[11] : null,
+        onGround: Boolean(s[8]),
+        timestamp:
+          typeof s[3] === "number" ? s[3] : Math.floor(Date.now() / 1000),
+      })
+    );
   } catch {
     return MOCK_LIVE_FLIGHTS;
   }
@@ -56,11 +58,10 @@ export async function fetchLiveFlights(
 
 export async function fetchFlightTrajectory(
   icao24: string,
-  beginTime: number,
-  endTime: number
+  beginTime: number
 ): Promise<FlightTrajectory | null> {
-  const apiKey = process.env.OPENSKY_USERNAME;
-  if (!apiKey) {
+  const user = process.env.OPENSKY_USERNAME;
+  if (!user) {
     return MOCK_TRAJECTORIES.find((t) => t.icao24 === icao24) ?? null;
   }
 
@@ -73,7 +74,7 @@ export async function fetchFlightTrajectory(
 
     if (!res.ok) return null;
 
-    const data = await res.json() as {
+    const data = (await res.json()) as {
       icao24?: string;
       callsign?: string;
       startTime?: number;
@@ -86,7 +87,7 @@ export async function fetchFlightTrajectory(
       icao24: data.icao24 ?? icao24,
       callsign: (data.callsign ?? "").trim(),
       startTime: data.startTime ?? beginTime,
-      endTime: data.endTime ?? endTime,
+      endTime: data.endTime ?? Math.floor(Date.now() / 1000),
       path: data.path.map((p) => ({
         timestamp: p[0],
         latitude: p[1] ?? 0,
@@ -103,23 +104,5 @@ export async function fetchFlightTrajectory(
 }
 
 export async function fetchHistoricalTrajectories(): Promise<FlightTrajectory[]> {
-  const apiKey = process.env.OPENSKY_USERNAME;
-  if (!apiKey) {
-    return MOCK_TRAJECTORIES;
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  const beginTime = now - 7200;
-
-  try {
-    const liveFlights = await fetchLiveFlights();
-    const first3 = liveFlights.slice(0, 3);
-    const trajectories = await Promise.all(
-      first3.map((f) => fetchFlightTrajectory(f.icao24, beginTime, now))
-    );
-    const valid = trajectories.filter((t): t is FlightTrajectory => t !== null);
-    return valid.length > 0 ? valid : MOCK_TRAJECTORIES;
-  } catch {
-    return MOCK_TRAJECTORIES;
-  }
+  return MOCK_TRAJECTORIES;
 }

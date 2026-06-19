@@ -7,6 +7,7 @@ interface UIStoreState {
   currentTime: number;
   activeWeatherLayer: WeatherLayerType;
   showFlightPaths: boolean;
+  showLiveFlights: boolean;
   isPlaying: boolean;
   playbackSpeed: PlaybackSpeed;
   mapStyle: MapStyle;
@@ -18,6 +19,7 @@ interface UIStoreState {
   setCurrentTime: (time: number) => void;
   setActiveWeatherLayer: (layer: WeatherLayerType) => void;
   setShowFlightPaths: (show: boolean) => void;
+  setShowLiveFlights: (show: boolean) => void;
   setIsPlaying: (playing: boolean) => void;
   setPlaybackSpeed: (speed: PlaybackSpeed) => void;
   setMapStyle: (style: MapStyle) => void;
@@ -33,6 +35,7 @@ export const useUIStoreInternal = create<UIStoreState>((set) => ({
   currentTime: 0,
   activeWeatherLayer: "none",
   showFlightPaths: true,
+  showLiveFlights: true,
   isPlaying: false,
   playbackSpeed: 1,
   mapStyle: "dark",
@@ -44,6 +47,7 @@ export const useUIStoreInternal = create<UIStoreState>((set) => ({
   setCurrentTime: (currentTime) => set({ currentTime }),
   setActiveWeatherLayer: (activeWeatherLayer) => set({ activeWeatherLayer }),
   setShowFlightPaths: (showFlightPaths) => set({ showFlightPaths }),
+  setShowLiveFlights: (showLiveFlights) => set({ showLiveFlights }),
   setIsPlaying: (isPlaying) => set({ isPlaying }),
   setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
   setMapStyle: (mapStyle) => set({ mapStyle }),
