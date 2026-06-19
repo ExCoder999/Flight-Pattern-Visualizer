@@ -17,11 +17,15 @@ export default function WorldWeatherLayer({ activeLayer }: WorldWeatherLayerProp
   if (activeLayer === "none") return null;
 
   const owmLayer = OWM_LAYER[activeLayer as Exclude<WeatherLayerType, "none">];
+  // Use owmLayer in the source/layer IDs so each weather type gets its own
+  // MapLibre source — prevents "source already exists" error on layer switch.
+  const sourceId = `owm-tiles-${owmLayer}`;
+  const layerId  = `owm-raster-${owmLayer}`;
 
   return (
     <Source
-      key={owmLayer}
-      id="owm-tiles"
+      key={sourceId}
+      id={sourceId}
       type="raster"
       tiles={[`/api/wx-tile/${owmLayer}/{z}/{x}/{y}`]}
       tileSize={256}
@@ -30,9 +34,9 @@ export default function WorldWeatherLayer({ activeLayer }: WorldWeatherLayerProp
       attribution="Weather data © OpenWeatherMap"
     >
       <Layer
-        id="owm-raster"
+        id={layerId}
         type="raster"
-        source="owm-tiles"
+        source={sourceId}
         paint={{ "raster-opacity": 0.6 }}
       />
     </Source>

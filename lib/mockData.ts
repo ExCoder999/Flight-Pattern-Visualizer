@@ -221,29 +221,33 @@ export const MOCK_TRAJECTORIES: FlightTrajectory[] = [
   },
 
   // --- International great-circle routes ---
-  // BA117: London Heathrow → New York JFK (7h30m, westbound)
-  makeIntlRoute("ba117xx", "BAW117", 51.47, -0.45, 40.64, -73.78, 27000, 27000, 11500, 280),
+  // All timestamps are compressed into the same ~9 000 s window as the CONUS
+  // routes so every plane animates at a consistent visual speed on the timeline.
+  // The great-circle path is real; only the wall-clock scale is condensed.
 
-  // UA838: Los Angeles → Tokyo Narita (10h, transpacific)
-  makeIntlRoute("ua838xx", "UAL838", 33.94, -118.41, 35.77, 140.39, 36000, 36000, 12000, 285),
+  // BAW117: London Heathrow → New York JFK  (westbound transatlantic)
+  makeIntlRoute("ba117xx", "BAW117", 51.47, -0.45,   40.64, -73.78,  9000, 8200, 11500, 252),
 
-  // AF007: New York JFK → Paris CDG (7h, eastbound)
-  makeIntlRoute("af007xx", "AFR007", 40.64, -73.78, 49.01, 2.55, 25200, 25200, 11800, 290),
+  // UAL838: Los Angeles → Tokyo Narita  (transpacific)
+  makeIntlRoute("ua838xx", "UAL838", 33.94, -118.41, 35.77, 140.39,  8600, 7800, 12000, 258),
 
-  // EK003: London Heathrow → Dubai (6h15m)
-  makeIntlRoute("ek003xx", "UAE003", 51.47, -0.45, 25.25, 55.37, 22500, 22500, 11900, 295),
+  // AFR007: New York JFK → Paris CDG  (eastbound transatlantic)
+  makeIntlRoute("af007xx", "AFR007", 40.64, -73.78,  49.01,   2.55,  8100, 7200, 11800, 248),
 
-  // SQ321: Singapore → London Heathrow (13h)
-  makeIntlRoute("sq321xx", "SIA321", 1.36, 103.99, 51.47, -0.45, 46800, 46800, 12000, 302),
+  // UAE003: London Heathrow → Dubai  (Middle East)
+  makeIntlRoute("ek003xx", "UAE003", 51.47, -0.45,   25.25,  55.37,  7600, 6800, 11900, 262),
 
-  // QF107: Sydney → Los Angeles (14h transpacific)
-  makeIntlRoute("qf107xx", "QFA107", -33.94, 151.18, 33.94, -118.41, 50400, 50400, 12200, 295),
+  // SIA321: Singapore → London Heathrow  (Asia–Europe)
+  makeIntlRoute("sq321xx", "SIA321",  1.36, 103.99,  51.47,  -0.45,  7200, 6500, 12000, 270),
 
-  // CX251: Hong Kong → London Heathrow (12h)
-  makeIntlRoute("cx251xx", "CPA251", 22.31, 113.92, 51.47, -0.45, 43200, 43200, 11800, 298),
+  // QFA107: Sydney → Los Angeles  (transpacific south)
+  makeIntlRoute("qf107xx", "QFA107", -33.94, 151.18, 33.94, -118.41, 8400, 7600, 12200, 260),
 
-  // LA8009: São Paulo → London (11h30m)
-  makeIntlRoute("la8009x", "LAN8009", -23.44, -46.47, 51.47, -0.45, 41400, 41400, 11700, 292),
+  // CPA251: Hong Kong → London Heathrow  (Asia–Europe polar)
+  makeIntlRoute("cx251xx", "CPA251", 22.31, 113.92,  51.47,  -0.45,  7800, 7000, 11800, 265),
+
+  // LAN8009: São Paulo → London  (South America–Europe)
+  makeIntlRoute("la8009x", "LAN8009", -23.44, -46.47, 51.47, -0.45, 7400, 6800, 11700, 255),
 ];
 
 // ---------------------------------------------------------------------------
@@ -257,12 +261,12 @@ export const MOCK_LIVE_FLIGHTS: FlightState[] = [
   { icao24: "c9d0e1", callsign: "SWA202",  originCountry: "United States", longitude: -116.0,   latitude:  47.0,  baroAltitude:  9000, velocity: 260, trueTrack: 325, verticalRate: -5, onGround: false, timestamp: now },
   { icao24: "f2a3b4", callsign: "JBU614",  originCountry: "United States", longitude:  -76.5,   latitude:  35.0,  baroAltitude: 11200, velocity: 300, trueTrack: 200, verticalRate:  0, onGround: false, timestamp: now },
   { icao24: "b5c6d7", callsign: "FDX901",  originCountry: "United States", longitude:  -96.5,   latitude:  39.8,  baroAltitude: 11500, velocity: 295, trueTrack:  66, verticalRate: -1, onGround: false, timestamp: now },
-  // International mock live positions
-  { icao24: "ba117xx", callsign: "BAW117", originCountry: "United Kingdom", longitude: -40.0,   latitude:  48.5,  baroAltitude: 11500, velocity: 280, trueTrack: 255, verticalRate:  0, onGround: false, timestamp: now },
-  { icao24: "ua838xx", callsign: "UAL838", originCountry: "United States",  longitude: 175.0,   latitude:  40.0,  baroAltitude: 12000, velocity: 285, trueTrack: 298, verticalRate:  0, onGround: false, timestamp: now },
-  { icao24: "af007xx", callsign: "AFR007", originCountry: "France",         longitude: -25.0,   latitude:  48.0,  baroAltitude: 11800, velocity: 290, trueTrack:  68, verticalRate:  0, onGround: false, timestamp: now },
-  { icao24: "sq321xx", callsign: "SIA321", originCountry: "Singapore",      longitude:  60.0,   latitude:  25.0,  baroAltitude: 12000, velocity: 302, trueTrack: 300, verticalRate:  0, onGround: false, timestamp: now },
-  { icao24: "qf107xx", callsign: "QFA107", originCountry: "Australia",      longitude: -165.0,  latitude:  10.0,  baroAltitude: 12200, velocity: 295, trueTrack:  38, verticalRate:  0, onGround: false, timestamp: now },
+  // International mock live positions (mid-route approximations)
+  { icao24: "ba117xx", callsign: "BAW117", originCountry: "United Kingdom", longitude: -37.0,   latitude:  52.0,  baroAltitude: 11500, velocity: 252, trueTrack: 255, verticalRate:  0, onGround: false, timestamp: now },
+  { icao24: "ua838xx", callsign: "UAL838", originCountry: "United States",  longitude: 170.0,   latitude:  42.0,  baroAltitude: 12000, velocity: 258, trueTrack: 298, verticalRate:  0, onGround: false, timestamp: now },
+  { icao24: "af007xx", callsign: "AFR007", originCountry: "France",         longitude: -30.0,   latitude:  46.0,  baroAltitude: 11800, velocity: 248, trueTrack:  68, verticalRate:  0, onGround: false, timestamp: now },
+  { icao24: "sq321xx", callsign: "SIA321", originCountry: "Singapore",      longitude:  55.0,   latitude:  28.0,  baroAltitude: 12000, velocity: 270, trueTrack: 300, verticalRate:  0, onGround: false, timestamp: now },
+  { icao24: "qf107xx", callsign: "QFA107", originCountry: "Australia",      longitude:-160.0,   latitude:  10.0,  baroAltitude: 12200, velocity: 260, trueTrack:  38, verticalRate:  0, onGround: false, timestamp: now },
 ];
 
 // ---------------------------------------------------------------------------
