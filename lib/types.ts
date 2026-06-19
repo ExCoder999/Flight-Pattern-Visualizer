@@ -46,6 +46,24 @@ export interface WeatherPoint {
 
 export type WeatherLayerType = "temperature" | "wind" | "precipitation" | "none";
 
+export type MapStyle = "dark" | "satellite" | "light" | "streets";
+
+export type PlaybackSpeed = 0.5 | 1 | 2 | 5;
+
+export interface ToastMessage {
+  id: string;
+  message: string;
+  type: "info" | "success" | "error";
+}
+
+export interface Airport {
+  icao: string;
+  name: string;
+  city: string;
+  lat: number;
+  lon: number;
+}
+
 export interface UIFilters {
   selectedFlightId: string | null;
   timeRange: [number, number];
@@ -53,6 +71,10 @@ export interface UIFilters {
   activeWeatherLayer: WeatherLayerType;
   showFlightPaths: boolean;
   isPlaying: boolean;
+  playbackSpeed: PlaybackSpeed;
+  mapStyle: MapStyle;
+  is3D: boolean;
+  sidebarOpen: boolean;
 }
 
 export interface AppState {
@@ -60,6 +82,14 @@ export interface AppState {
   liveFlights: FlightState[];
   weather: WeatherPoint[];
   ui: UIFilters;
+}
+
+export interface FlightStats {
+  totalRoutes: number;
+  totalDistanceKm: number;
+  avgSpeedKts: number;
+  maxAltitudeFt: number;
+  countries: string[];
 }
 
 export interface GeoJsonFeatureCollection {

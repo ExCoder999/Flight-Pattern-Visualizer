@@ -3,6 +3,8 @@ import type {
   TrajectoryPoint,
   GeoJsonFeatureCollection,
   GeoJsonFeature,
+  FlightStats,
+  Airport,
 } from "./types";
 
 export function trajectoriesToGeoJson(
@@ -92,6 +94,56 @@ export function flightHeadsToGeoJson(
     .filter((f): f is GeoJsonFeature => f !== null);
 
   return { type: "FeatureCollection", features };
+}
+
+export function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+export function trajectoryDistanceKm(traj: FlightTrajectory): number {
+  let total = 0;
+  for (let i = 1; i < traj.path.length; i++) {
+    const a = traj.path[i - 1];
+    const b = traj.path[i];
+    total += haversineKm(a.latitude, a.longitude, b.latitude, b.longitude);
+  }
+  return total;
+}
+
+export function computeFlightStats(trajectories: FlightTrajectory[]): FlightStats {
+  if (trajectories.length === 0) {
+    return { totalRoutes: 0, totalDistanceKm: 0, avgSpeedKts: 0, maxAltitudeFt: 0, countries: [] };
+  }
+  const totalDistanceKm = trajectories.reduce((acc, t) => acc + trajectoryDistanceKm(t), 0);
+  const allSpeeds = trajectories.flatMap((t) => t.path.map((p) => p.velocity ?? 0)).filter((v) => v > 0);
+  const avgSpeedMs = allSpeeds.length ? allSpeeds.reduce((a, b) => a + b, 0) / allSpeeds.length : 0;
+  const maxAltM = Math.max(0, ...trajectories.flatMap((t) => t.path.map((p) => p.baroAltitude ?? 0)));
+  return {
+    totalRoutes: trajectories.length,
+    totalDistanceKm: Math.round(totalDistanceKm),
+    avgSpeedKts: Math.round(avgSpeedMs * 1.94384),
+    maxAltitudeFt: Math.round(maxAltM * 3.28084),
+    countries: ["United States"],
+  };
+}
+
+export function airportsToGeoJson(airports: Airport[]): GeoJsonFeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: airports.map((a) => ({
+      type: "Feature",
+      geometry: { type: "Point", coordinates: [a.lon, a.lat] },
+      properties: { icao: a.icao, name: a.name, city: a.city },
+    })),
+  };
 }
 
 export function interpolateColor(
